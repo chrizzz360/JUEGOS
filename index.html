@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Minimalist Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar for minimalist clean look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        .backdrop-blur-custom {
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Header / Bar -->
+    <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-custom">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Search & Filter Controls -->
+            <div class="flex items-center gap-3 flex-1 max-w-md">
+                <div class="relative w-full">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar juego..." 
+                        class="w-full pl-10 pr-4 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all">
+                </div>
+            </div>
+
+            <!-- Stats & Quick Actions -->
+            <div class="flex items-center gap-2">
+                <span id="gameCount" class="text-[11px] text-slate-400 font-mono bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">0 juegos</span>
+                <button id="favoriteFilterBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-all">
+                    <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span class="hidden sm:inline">Favoritos</span>
+                    <span id="favCountBadge" class="bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+        
+        <!-- Category Filter Chips (Ultra Clean) -->
+        <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+            <div class="flex flex-wrap items-center gap-2" id="categoryChips">
+                <!-- Dynamic Category Chips -->
+            </div>
+            
+            <!-- Sort dropdown -->
+            <select id="sortSelect" class="bg-slate-900 text-slate-300 border border-slate-800 text-xs rounded-xl px-2.5 py-1 focus:outline-none focus:border-indigo-500">
+                <option value="default">Orden predeterminado</option>
+                <option value="name">Por Nombre (A-Z)</option>
+            </select>
+        </div>
+
+        <!-- Games Grid -->
+        <section id="gamesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- Dynamic game cards injected here -->
+        </section>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+            <div class="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
+                <i data-lucide="ghost" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-medium text-slate-400 mb-1">No se encontraron juegos</h4>
+        </div>
+    </main>
+
+    <!-- GAME MODAL / IFRAME PLAYER -->
+    <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex-col opacity-0 transition-opacity duration-300">
+        <!-- Modal Top Bar -->
+        <div class="h-16 px-4 sm:px-6 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="modalIcon" class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                    <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="text-sm sm:text-base font-bold text-white">Título del Juego</h3>
+                    <p id="modalCategory" class="text-xs text-slate-400">Categoría</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="modalFavBtn" class="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors" title="Guardar en Favoritos">
+                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                </button>
+                <button onclick="toggleFullscreen()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" title="Pantalla Completa">
+                    <i data-lucide="maximize" class="w-5 h-5"></i>
+                </button>
+                <button onclick="closeGameModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-xl transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i> Salir
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Iframe Container -->
+        <div class="flex-1 w-full h-full relative bg-black flex items-center justify-center">
+            <!-- Loading Spinner -->
+            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 text-slate-400 gap-3 z-10">
+                <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-xs tracking-wider uppercase font-mono">Cargando Juego...</span>
+            </div>
+            
+            <!-- Game Iframe -->
+            <iframe id="gameIframe" class="w-full h-full border-0 relative z-20" allow="autoplay; keyboard; fullscreen" src=""></iframe>
+        </div>
+    </div>
+
+    <!-- Integration Guide Modal -->
+    <div id="devModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="file-code" class="w-5 h-5 text-indigo-400"></i> Estructura del Proyecto
+                </h3>
+                <button onclick="closeDevGuide()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="text-xs text-slate-300 space-y-3 font-mono bg-slate-950 p-4 rounded-xl border border-slate-800/80 overflow-x-auto">
+                <p class="text-indigo-400 font-bold">// Estructura de archivos esperada:</p>
+                <p>📂 tu-proyecto/</p>
+                <p>├── 📄 index.html (este menú)</p>
+                <p>├── 📂 pac-man/</p>
+                <p>│   └── 📄 index.html</p>
+                <p>├── 📂 tetris/</p>
+                <p>│   └── 📄 index.html</p>
+                <p>└── 📂 nuevo-juego/</p>
+                <p>    └── 📄 index.html</p>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                Para añadir un juego en el código JavaScript, solo debes agregar una nueva entrada en la variable <code class="text-indigo-300">GAMES</code> con la ruta correspondiente a la carpeta.
+            </p>
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeDevGuide()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP CODE -->
+    <script>
+        /**
+         * ARRAY DE JUEGOS MODULAR Y EXTENSIBLE
+         * Añade nuevas carpetas en el futuro agregando objetos aquí:
+         */
+        const GAMES = [
+            {
+                id: 'pac-man',
+                title: 'Pac-Man',
+                category: 'Arcade',
+                path: 'pac-man/index.html',
+                icon: 'smile',
+                description: 'Carpetas: /pac-man/index.html',
+                color: 'from-amber-500/10 to-yellow-600/5'
+            },
+            {
+                id: 'tetris',
+                title: 'Tetris',
+                category: 'Puzzle',
+                path: 'tetris/index.html',
+                icon: 'layout-grid',
+                description: 'Carpetas: /tetris/index.html',
+                color: 'from-cyan-500/10 to-blue-600/5'
+            }
+        ];
+
+        // System State
+        let favorites = JSON.parse(localStorage.getItem('arcade_favs') || '[]');
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let showFavsOnly = false;
+        let currentSort = 'default';
+
+        // DOM Elements
+        const gamesGrid = document.getElementById('gamesGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const categoryChips = document.getElementById('categoryChips');
+        const gameCount = document.getElementById('gameCount');
+        const favoriteFilterBtn = document.getElementById('favoriteFilterBtn');
+        const favCountBadge = document.getElementById('favCountBadge');
+        const sortSelect = document.getElementById('sortSelect');
+        const gameModal = document.getElementById('gameModal');
+        const gameIframe = document.getElementById('gameIframe');
+        const iframeLoader = document.getElementById('iframeLoader');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalCategory = document.getElementById('modalCategory');
+        const modalFavBtn = document.getElementById('modalFavBtn');
+
+        // Fallbacks jugables si se ejecuta la vista previa sin carpetas locales
+        const DEMO_GAMES = {
+            'pac-man': `
+                <!DOCTYPE html>
+                <html><head><style>
+                    body { background: #090d16; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+                    canvas { border: 2px solid #334155; border-radius: 12px; background: #000; }
+                    .info { margin-top: 12px; font-size: 13px; color: #64748b; }
+                </style></head><body>
+                    <canvas id="canvas" width="360" height="360"></canvas>
+                    <div class="info">Pac-Man (Usa las flechas del teclado)</div>
+                    <script>
+                        const canvas = document.getElementById('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let x = 180, y = 180, dirX = 0, dirY = 0;
+                        let dots = [];
+                        for(let i=30; i<340; i+=30){
+                            for(let j=30; j<340; j+=30){
+                                dots.push({x: i, y: j, active: true});
+                            }
+                        }
+                        document.addEventListener('keydown', e => {
+                            if(e.key==='ArrowRight') { dirX=2; dirY=0; }
+                            if(e.key==='ArrowLeft') { dirX=-2; dirY=0; }
+                            if(e.key==='ArrowUp') { dirX=0; dirY=-2; }
+                            if(e.key==='ArrowDown') { dirX=0; dirY=2; }
+                        });
+                        function loop() {
+                            x = Math.max(20, Math.min(340, x + dirX));
+                            y = Math.max(20, Math.min(340, y + dirY));
+                            ctx.fillStyle = '#000';
+                            ctx.fillRect(0,0,360,360);
+                            dots.forEach(d => {
+                                if(d.active) {
+                                    if(Math.hypot(d.x - x, d.y - y) < 14) d.active = false;
+                                    ctx.fillStyle = '#fbbf24';
+                                    ctx.beginPath();
+                                    ctx.arc(d.x, d.y, 3, 0, Math.PI*2);
+                                    ctx.fill();
+                                }
+                            });
+                            ctx.fillStyle = '#eab308';
+                            ctx.beginPath();
+                            ctx.arc(x, y, 12, 0.2 * Math.PI, 1.8 * Math.PI);
+                            ctx.lineTo(x, y);
+                            ctx.fill();
+                            requestAnimationFrame(loop);
+                        }
+                        loop();
+                    <\/script>
+                </body></html>
+            `,
+            'tetris': `
+                <!DOCTYPE html>
+                <html><head><style>
+                    body { background: #090d16; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+                    canvas { border: 2px solid #334155; border-radius: 12px; background: #000; }
+                    .info { margin-top: 12px; font-size: 13px; color: #64748b; }
+                </style></head><body>
+                    <canvas id="tetris" width="200" height="360"></canvas>
+                    <div class="info">Tetris (Usa Izq / Der / Abajo)</div>
+                    <script>
+                        const canvas = document.getElementById('tetris');
+                        const context = canvas.getContext('2d');
+                        context.scale(20, 20);
+                        const matrix = [[0,0,0],[1,1,1],[0,1,0]];
+                        let player = { pos: {x: 3, y: 0}, matrix: matrix };
+                        function draw() {
+                            context.fillStyle = '#000';
+                            context.fillRect(0, 0, canvas.width, canvas.height);
+                            player.matrix.forEach((row, y) => {
+                                row.forEach((value, x) => {
+                                    if (value !== 0) {
+                                        context.fillStyle = '#818cf8';
+                                        context.fillRect(x + player.pos.x, y + player.pos.y, 1, 1);
+                                    }
+                                });
+                            });
+                        }
+                        let dropCounter = 0, lastTime = 0;
+                        function update(time = 0) {
+                            const deltaTime = time - lastTime;
+                            lastTime = time;
+                            dropCounter += deltaTime;
+                            if (dropCounter > 800) {
+                                player.pos.y++;
+                                if(player.pos.y > 15) player.pos.y = 0;
+                                dropCounter = 0;
+                            }
+                            draw();
+                            requestAnimationFrame(update);
+                        }
+                        document.addEventListener('keydown', event => {
+                            if (event.key === 'ArrowLeft') player.pos.x--;
+                            if (event.key === 'ArrowRight') player.pos.x++;
+                            if (event.key === 'ArrowDown') player.pos.y++;
+                        });
+                        update();
+                    <\/script>
+                </body></html>
+            `
+        };
+
+        // Initialize App
+        function initApp() {
+            renderCategoryChips();
+            renderGames();
+            updateFavBadge();
+
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderGames();
+            });
+
+            favoriteFilterBtn.addEventListener('click', () => {
+                showFavsOnly = !showFavsOnly;
+                favoriteFilterBtn.classList.toggle('bg-indigo-600/20', showFavsOnly);
+                favoriteFilterBtn.classList.toggle('border-indigo-500/50', showFavsOnly);
+                renderGames();
+            });
+
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderGames();
+            });
+
+            lucide.createIcons();
+        }
+
+        // Render Filter Chips
+        function renderCategoryChips() {
+            const categories = ['All', ...new Set(GAMES.map(g => g.category))];
+            categoryChips.innerHTML = categories.map(cat => `
+                <button 
+                    onclick="selectCategory('${cat}')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                        activeCategory === cat 
+                        ? 'bg-indigo-600 text-white' 
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
+                    }">
+                    ${cat === 'All' ? 'Todos' : cat}
+                </button>
+            `).join('');
+        }
+
+        function selectCategory(cat) {
+            activeCategory = cat;
+            renderCategoryChips();
+            renderGames();
+        }
+
+        // Toggle Favorite
+        function toggleFavorite(id, event) {
+            if (event) event.stopPropagation();
+            if (favorites.includes(id)) {
+                favorites = favorites.filter(favId => favId !== id);
+            } else {
+                favorites.push(id);
+            }
+            localStorage.setItem('arcade_favs', JSON.stringify(favorites));
+            updateFavBadge();
+            renderGames();
+        }
+
+        function updateFavBadge() {
+            favCountBadge.textContent = favorites.length;
+        }
+
+        // Filter and Sort Logic
+        function getFilteredGames() {
+            let list = [...GAMES];
+
+            if (showFavsOnly) {
+                list = list.filter(game => favorites.includes(game.id));
+            }
+
+            if (activeCategory !== 'All') {
+                list = list.filter(game => game.category === activeCategory);
+            }
+
+            if (searchQuery.trim() !== '') {
+                list = list.filter(game => 
+                    game.title.toLowerCase().includes(searchQuery) || 
+                    game.category.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (currentSort === 'name') {
+                list.sort((a, b) => a.title.localeCompare(b.title));
+            }
+
+            return list;
+        }
+
+        // Render Game Cards
+        function renderGames() {
+            const list = getFilteredGames();
+            gameCount.textContent = `${list.length} juego${list.length === 1 ? '' : 's'}`;
+
+            if (list.length === 0) {
+                gamesGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            gamesGrid.innerHTML = list.map(game => {
+                const isFav = favorites.includes(game.id);
+                return `
+                <div onclick="launchGame('${game.id}')" 
+                    class="group relative bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700/80 rounded-xl p-4 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 cursor-pointer">
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-slate-800/80 border border-slate-700/40 flex items-center justify-center text-indigo-400 group-hover:text-white group-hover:bg-indigo-600 transition-all">
+                                <i data-lucide="${game.icon || 'gamepad-2'}" class="w-5 h-5"></i>
+                            </div>
+                            
+                            <button onclick="toggleFavorite('${game.id}', event)" 
+                                class="p-1.5 text-slate-500 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors">
+                                <i data-lucide="bookmark" class="w-4 h-4 ${isFav ? 'fill-amber-400 text-amber-400' : ''}"></i>
+                            </button>
+                        </div>
+
+                        <h4 class="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors mb-0.5">${game.title}</h4>
+                        <span class="inline-block text-[10px] text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded mb-2">${game.category}</span>
+                    </div>
+
+                    <div class="relative z-10 pt-3 mt-2 border-t border-slate-800/50 flex items-center justify-between text-xs">
+                        <span class="text-slate-500 font-mono text-[10px] truncate">${game.path}</span>
+                        <span class="flex items-center gap-1 font-semibold text-indigo-400 text-xs">
+                            Abrir <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Launch Game in Iframe / Modal
+        function launchGame(gameId) {
+            const game = GAMES.find(g => g.id === gameId);
+            if (!game) return;
+
+            modalTitle.textContent = game.title;
+            modalCategory.textContent = game.category;
+            
+            const isFav = favorites.includes(game.id);
+            modalFavBtn.onclick = () => {
+                toggleFavorite(game.id);
+                const updatedFav = favorites.includes(game.id);
+                modalFavBtn.querySelector('i').classList.toggle('fill-amber-400', updatedFav);
+                modalFavBtn.querySelector('i').classList.toggle('text-amber-400', updatedFav);
+            };
+            modalFavBtn.querySelector('i').className = `w-5 h-5 ${isFav ? 'fill-amber-400 text-amber-400' : ''}`;
+
+            iframeLoader.classList.remove('hidden');
+            gameModal.classList.remove('hidden');
+            setTimeout(() => gameModal.classList.remove('opacity-0'), 10);
+
+            gameIframe.src = game.path;
+            gameIframe.onerror = () => loadDemoFallback(game.id);
+
+            const fallbackTimer = setTimeout(() => {
+                if (DEMO_GAMES[game.id]) {
+                    gameIframe.srcdoc = DEMO_GAMES[game.id];
+                }
+            }, 400);
+
+            gameIframe.onload = () => {
+                clearTimeout(fallbackTimer);
+                iframeLoader.classList.add('hidden');
+            };
+        }
+
+        function loadDemoFallback(id) {
+            if (DEMO_GAMES[id]) {
+                gameIframe.srcdoc = DEMO_GAMES[id];
+            }
+        }
+
+        function closeGameModal() {
+            gameModal.classList.add('opacity-0');
+            setTimeout(() => {
+                gameModal.classList.add('hidden');
+                gameIframe.src = '';
+                gameIframe.removeAttribute('srcdoc');
+            }, 300);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                gameModal.requestFullscreen().catch(err => console.warn(err));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !gameModal.classList.contains('hidden')) {
+                closeGameModal();
+            }
+        });
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
