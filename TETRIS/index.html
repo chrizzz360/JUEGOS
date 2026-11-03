@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tetris: Infinite Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="grid" aria-hidden="true"></div>
+<main class="cabinet">
+
+  <aside class="panel" aria-label="Reserva y controles">
+    <h2>Reserva</h2>
+    <canvas id="hold" width="100" height="100"></canvas>
+
+    <h2>Controles</h2>
+    <ul class="keys">
+      <li><kbd>←</kbd><kbd>→</kbd> Mover</li>
+      <li><kbd>↓</kbd> Bajar suave</li>
+      <li><kbd>Espacio</kbd> Caída directa</li>
+      <li><kbd>↑</kbd>/<kbd>X</kbd> Girar</li>
+      <li><kbd>Z</kbd> Girar inverso</li>
+      <li><kbd>C</kbd> Reservar</li>
+      <li><kbd>P</kbd> Pausa</li>
+    </ul>
+
+    <h2>Ajustes</h2>
+    <label>Modo
+      <select id="mode">
+        <option value="endless">Endless Evolution</option>
+        <option value="sprint">40-Line Sprint</option>
+        <option value="glitch">Glitch Rescue</option>
+      </select>
+    </label>
+    <p class="hint" id="modeHint">Sobrevive: tras el nivel 29 la gravedad se vuelve progresiva y se bloquea la rotación por momentos.</p>
+    <label>Nivel inicial <input id="startLevel" type="number" min="0" max="29" value="0"></label>
+    <label>DAS (6–16) <input id="das" type="number" min="6" max="16" value="10"></label>
+    <label>ARR (0–6) <input id="arr" type="number" min="0" max="6" value="2"></label>
+    <details>
+      <summary>¿Qué son DAS y ARR?</summary>
+      <p><b>DAS</b> (Delayed Auto-Shift): cuántos frames debes mantener ← o → antes de que la pieza empiece a deslizarse sola. Menos = reacciona más rápido; más = menos deslizamientos accidentales.</p>
+      <p><b>ARR</b> (Auto Repeat Rate): una vez pasado el DAS, cada cuántos frames avanza una casilla. Con 0 salta de golpe hasta la pared.</p>
+      <p>1 frame = 1/60 s.</p>
+    </details>
+  </aside>
+
+  <section class="center">
+    <h1>TETRIS<span>INFINITE MATRIX</span></h1>
+    <div class="board-wrap">
+      <canvas id="board" width="300" height="600"></canvas>
+      <div id="overlay" class="overlay">
+        <h3 id="ovTitle">Listo</h3>
+        <p id="msg">Pulsa Enter para empezar</p>
+        <button id="play">Jugar</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel" aria-label="Siguiente y marcadores">
+    <h2>Siguiente</h2>
+    <canvas id="next" width="100" height="240"></canvas>
+    <div class="stat"><span>Puntaje</span><b id="score">0</b></div>
+    <div class="stat"><span>Líneas</span><b id="lines">0</b></div>
+    <div class="stat"><span>Nivel</span><b id="level">0</b></div>
+    <div class="stat"><span>Tiempo</span><b id="time">0:00.000</b></div>
+    <div class="stat"><span>PPS · KPP</span><b id="pk">0.00 · 0.00</b></div>
+    <div class="stat"><span>Modo</span><b id="modeLabel">-</b></div>
+    <div class="mod" id="mod"></div>
+  </aside>
+
+</main>
+<script src="script.js"></script>
+</body>
+</html>

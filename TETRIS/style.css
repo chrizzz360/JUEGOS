@@ -1,0 +1,62 @@
+:root{--cyan:#00f3ff;--purple:#bc13fe;--red:#ff0055;--ink:#e9f9ff;--dim:#8fa3c9}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;overflow-x:hidden;
+  font-family:'Orbitron','Segoe UI',sans-serif;color:var(--ink);
+  background:radial-gradient(ellipse at 50% 35%,#3a0a63 0%,#12032e 50%,#03000c 100%);
+}
+/* Rejilla cyberpunk en perspectiva */
+.grid{
+  position:fixed;left:-50%;right:-50%;bottom:0;height:65vh;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,243,255,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(188,19,254,.55) 1px,transparent 1px);
+  background-size:64px 64px;
+  transform:perspective(320px) rotateX(64deg);transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(to top,#000 10%,transparent);mask-image:linear-gradient(to top,#000 10%,transparent);
+  animation:gridMove 1.6s linear infinite;
+}
+@keyframes gridMove{from{background-position:0 0}to{background-position:0 64px}}
+
+/* Gabinete flotante */
+.cabinet{
+  position:relative;z-index:1;display:flex;gap:18px;align-items:flex-start;justify-content:center;
+  padding:22px;margin:16px;background:rgba(8,3,26,.82);border:2px solid var(--cyan);border-radius:14px;
+  box-shadow:0 0 22px var(--cyan),0 0 60px rgba(188,19,254,.55),inset 0 0 30px rgba(255,0,85,.18);
+  animation:float 6s ease-in-out infinite;flex-wrap:wrap;
+}
+@keyframes float{50%{transform:translateY(-8px)}}
+
+.panel{width:190px;display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:6px 0 0;font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--cyan);text-shadow:0 0 8px var(--cyan)}
+.panel canvas{background:#05020f;border:1px solid var(--purple);border-radius:6px;box-shadow:0 0 12px rgba(188,19,254,.5);align-self:center}
+.keys{list-style:none;margin:0;padding:0;font-size:11px;line-height:2;color:var(--dim)}
+kbd{background:#1a0b3a;border:1px solid var(--purple);border-radius:4px;padding:1px 6px;margin-right:4px;color:var(--ink);font:inherit;font-size:10px}
+label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--dim)}
+input,select{width:62px;background:#0a0420;color:var(--ink);border:1px solid var(--cyan);border-radius:4px;padding:4px;font:inherit;font-size:11px}
+select{width:118px}
+.hint{margin:0;font-size:10px;line-height:1.5;color:var(--dim)}
+.mod{min-height:30px;font-size:10px;line-height:1.4;color:var(--red);text-shadow:0 0 8px var(--red)}
+.stat b#time,.stat b#pk,.stat b#modeLabel{font-size:15px}
+details{font-size:11px;line-height:1.5;color:var(--dim);border:1px solid var(--line,#3b2a6b);border-radius:6px;padding:6px 8px}
+summary{cursor:pointer;color:var(--cyan)}
+details p{margin:6px 0}
+
+.center{display:flex;flex-direction:column;align-items:center;gap:10px}
+h1{margin:0;text-align:center;font-weight:800;font-size:26px;line-height:1.1;letter-spacing:.08em;color:var(--cyan);text-shadow:0 0 12px var(--cyan),3px 3px 0 var(--red)}
+h1 span{display:block;font-size:13px;letter-spacing:.45em;color:var(--purple);text-shadow:0 0 10px var(--purple)}
+.board-wrap{position:relative;width:300px;height:600px}
+#board{display:block;background:#04010c;border:2px solid var(--purple);border-radius:6px;box-shadow:0 0 18px var(--purple),0 0 40px rgba(0,243,255,.35)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(3,0,12,.86);border-radius:6px;text-align:center;padding:16px}
+.overlay.hidden{display:none}
+.overlay h3{margin:0;font-size:26px;color:var(--red);text-shadow:0 0 14px var(--red)}
+.overlay p{margin:0;font-size:12px;color:var(--ink);line-height:1.6}
+button{font:inherit;font-weight:800;font-size:13px;letter-spacing:.1em;padding:12px 22px;color:#00141a;background:var(--cyan);border:0;border-radius:6px;cursor:pointer;box-shadow:0 0 16px var(--cyan)}
+button:hover{background:#fff}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+.stat{background:#05020f;border:1px solid var(--cyan);border-radius:6px;padding:8px 10px;box-shadow:inset 0 0 12px rgba(0,243,255,.2)}
+.stat span{display:block;font-size:10px;color:var(--dim);letter-spacing:.1em}
+.stat b{display:block;margin-top:4px;font-size:22px;color:var(--cyan);text-shadow:0 0 10px var(--cyan);font-variant-numeric:tabular-nums}
+
+@media (max-width:900px){.panel{width:300px}}
+@media (prefers-reduced-motion:reduce){.grid,.cabinet{animation:none}}
