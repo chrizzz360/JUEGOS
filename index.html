@@ -49,9 +49,9 @@
     </main>
 
     <!-- Fullscreen Game Modal (Iframe Container) -->
-    <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950/95 hidden flex-col opacity-0 transition-opacity duration-200">
+    <div id="gameModal" class="fixed inset-0 z-50 bg-slate-950 flex-col hidden opacity-0 transition-opacity duration-200">
         <!-- Modal Bar -->
-        <div class="h-12 px-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="h-12 px-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
                 <i id="modalIcon" data-lucide="gamepad-2" class="w-4 h-4 text-indigo-400"></i>
                 <h3 id="modalTitle" class="text-xs font-bold text-slate-200 tracking-wide">Juego</h3>
@@ -69,15 +69,15 @@
         </div>
 
         <!-- Iframe Container -->
-        <div class="flex-1 w-full h-full relative bg-black">
-            <iframe id="gameIframe" class="w-full h-full border-0" allow="autoplay; keyboard; fullscreen" src=""></iframe>
+        <div id="iframeWrapper" class="flex-1 w-full h-full relative bg-black">
+            <iframe id="gameIframe" class="w-full h-full border-0 block" allow="autoplay; keyboard; fullscreen *; gamepad" src=""></iframe>
         </div>
     </div>
 
     <!-- Script Configuration & Logic -->
     <script>
         /**
-         * REPOSICIONAL DE JUEGOS LOCALES (Modifícalo para añadir carpetas en el futuro)
+         * REPOSITORIO DE JUEGOS LOCALES
          */
         const GAMES = [
             { 
@@ -101,6 +101,7 @@
         const gameCount = document.getElementById('gameCount');
         const gameModal = document.getElementById('gameModal');
         const gameIframe = document.getElementById('gameIframe');
+        const iframeWrapper = document.getElementById('iframeWrapper');
         const modalTitle = document.getElementById('modalTitle');
         const modalFolder = document.getElementById('modalFolder');
         const modalIcon = document.getElementById('modalIcon');
@@ -174,27 +175,45 @@
 
             gameIframe.src = folder;
             gameModal.classList.remove('hidden');
-            setTimeout(() => gameModal.classList.remove('opacity-0'), 10);
+            gameModal.classList.add('flex');
+            
+            setTimeout(() => {
+                gameModal.classList.remove('opacity-0');
+                gameIframe.focus();
+            }, 50);
         }
 
         function closeGameModal() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => console.warn(err));
+            }
             gameModal.classList.add('opacity-0');
             setTimeout(() => {
+                gameModal.classList.remove('flex');
                 gameModal.classList.add('hidden');
                 gameIframe.src = '';
             }, 200);
         }
 
         function toggleFullscreen() {
+            const target = iframeWrapper; // Hace fullscreen sobre el contenedor del juego
             if (!document.fullscreenElement) {
-                gameModal.requestFullscreen().catch(err => console.warn(err));
+                if (target.requestFullscreen) {
+                    target.requestFullscreen();
+                } else if (target.webkitRequestFullscreen) {
+                    target.webkitRequestFullscreen();
+                }
             } else {
-                document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
+            // Mantiene el foco en el iframe para que los controles sigan respondiendo
+            setTimeout(() => gameIframe.focus(), 100);
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !gameModal.classList.contains('hidden')) {
+            if (e.key === 'Escape' && !gameModal.classList.contains('hidden') && !document.fullscreenElement) {
                 closeGameModal();
             }
         });
